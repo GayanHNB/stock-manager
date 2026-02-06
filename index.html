@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Stock Manager</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .hide { display: none !important; }
+        
+        /* Login Styles */
+        .login-container {
+            max-width: 400px; margin: 80px auto; background: white; padding: 40px;
+            border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;
+        }
+        .login-input { 
+            width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; 
+            border-radius: 6px; font-size: 16px; 
+        }
+        .login-btn { 
+            width: 96%; padding: 12px; background: #2980b9; color: white; 
+            border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold;
+        }
+        .login-btn:hover { background: #1f618d; }
+
+        /* Dashboard Styles */
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { 
+            background: #2c3e50; color: white; padding: 20px; border-radius: 8px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px;
+        }
+        .logout-btn { background: #c0392b; padding: 8px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        
+        .card { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .input-group { display: flex; gap: 10px; margin-top: 15px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .add-btn { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        th { background-color: #f8f9fa; text-align: left; padding: 12px; border-bottom: 2px solid #ddd; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .del-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen" class="login-container">
+        <h2 style="color: #2c3e50;">🔒 Business Login</h2>
+        <input type="email" id="email" class="login-input" placeholder="Email Address">
+        <input type="password" id="password" class="login-input" placeholder="Password">
+        <button class="login-btn" onclick="login()">Login to System</button>
+        <p id="errorMsg" style="color:red; margin-top:15px; font-size: 14px;"></p>
+    </div>
+
+    <div id="dashboardScreen" class="container hide">
+        <div class="header">
+            <h3>📦 Smart Stock Manager</h3>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="card">
+            <h3>Add New Item</h3>
+            <div class="input-group">
+                <input type="text" id="itemName" placeholder="Item Name">
+                <input type="number" id="itemQty" placeholder="Quantity">
+                <input type="number" id="itemPrice" placeholder="Price">
+                <button class="add-btn" onclick="addItem()">+ Add</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Current Inventory</h3>
+            <table id="itemTable">
+                <thead>
+                    <tr><th>Item Name</th><th>Qty</th><th>Price</th><th>Action</th></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
+            authDomain: "crypto-learner-4dc25.firebaseapp.com",
+            projectId: "crypto-learner-4dc25",
+            storageBucket: "crypto-learner-4dc25.firebasestorage.app",
+            messagingSenderId: "172453528799",
+            appId: "1:172453528799:web:a14e3a9a26700aabcd556a",
+            measurementId: "G-PSEPJKGZG6"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        // වැදගත්: මේ URL එක පසුව අපි Render Link එකට මාරු කරන්න ඕන
+        const API_URL = 'http://localhost:3000/api/items';
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    document.getElementById('loginScreen').classList.add('hide');
+                    document.getElementById('dashboardScreen').classList.remove('hide');
+                    loadItems(); 
+                })
+                .catch((error) => {
+                    document.getElementById('errorMsg').innerText = "Login Failed: " + error.message;
+                });
+        }
+
+        function logout() {
+            firebase.auth().signOut().then(() => location.reload());
+        }
+
+        async function loadItems() {
+            const res = await fetch(API_URL);
+            const items = await res.json();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; 
+            items.forEach(item => {
+                tbody.innerHTML += `<tr>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${item.price}</td>
+                    <td><button class="del-btn" onclick="deleteItem('${item.id}')">Delete</button></td>
+                </tr>`;
+            });
+        }
+
+        async function addItem() {
+            const name = document.getElementById('itemName').value;
+            const qty = document.getElementById('itemQty').value;
+            const price = document.getElementById('itemPrice').value;
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, qty, price })
+            });
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQty').value = '';
+            document.getElementById('itemPrice').value = '';
+            loadItems();
+        }
+
+        async function deleteItem(id) {
+            if(confirm("Delete this item?")) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadItems();
+            }
+        }
+    </script>
+</body>
+</html>
