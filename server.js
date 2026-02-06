@@ -1,57 +1,56 @@
 const express = require('express');
+const cors = require('cors'); // ✅ මේක අලුතෙන් දැම්මා
 const admin = require('firebase-admin');
-const cors = require('cors');
 
-const app = express();
-app.use(cors()); // ඕනෑම තැනක සිට සම්බන්ධ වීමට ඉඩ දෙයි
-app.use(express.json());
-
-// Firebase සම්බන්ධ කිරීම
-// ඔබේ serviceAccountKey.json ෆයිල් එක ෆෝල්ඩරයේ තිබිය යුතුයි
-const serviceAccount = require('./serviceAccountKey.json');
+const serviceAccount = require('/etc/secrets/serviceAccountKey.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
+
 const db = admin.firestore();
+const app = express();
 
-// --- API Routes ---
+app.use(cors()); // ✅ Netlify එකට එන්න අවසර දුන්නා
+app.use(express.json());
 
-// 1. බඩු ලිස්ට් එක ගැනීම (GET)
-app.get('/api/items', async (req, res) => {
-    try {
-        const snapshot = await db.collection('inventory').get();
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        res.json(items);
-    } catch (error) {
-        res.status(500).send("Error fetching items");
-    }
-});
-
-// 2. අලුත් බඩු එකතු කිරීම (POST)
+// Add Item
 app.post('/api/items', async (req, res) => {
-    try {
-        const newItem = req.body;
-        await db.collection('inventory').add(newItem);
-        res.json({ message: "Item Added!" });
-    } catch (error) {
-        res.status(500).send("Error adding item");
-    }
+  try {
+    const newItem = {
+      name: req.body.name,
+      qty: req.body.qty,
+      price: req.body.price
+    };
+    const docRef = await db.collection('items').add(newItem);
+    res.status(200).send({ id: docRef.id, ...newItem });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
 
-// 3. බඩු ඉවත් කිරීම (DELETE)
+// Get Items
+app.get('/api/items', async (req, res) => {
+  try {
+    const snapshot = await db.collection('items').get();
+    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(items);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// Delete Item
 app.delete('/api/items/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        await db.collection('inventory').doc(id).delete();
-        res.json({ message: "Item Deleted!" });
-    } catch (error) {
-        res.status(500).send("Error deleting item");
-    }
+  try {
+    await db.collection('items').doc(req.params.id).delete();
+    res.status(200).send('Deleted');
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
 
-// --- Server Start (Cloud Ready) ---
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Inventory Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
