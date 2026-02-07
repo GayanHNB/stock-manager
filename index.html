@@ -3,68 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Stock Manager - Firebase Version</title>
+    <title>NexStore.OS | Professional Stock Hub</title>
     
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .hide { display: none !important; }
-        .login-container { max-width: 400px; margin: 80px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; }
-        .login-input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
-        .login-btn { width: 96%; padding: 12px; background: #2980b9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logout-btn { background: #c0392b; padding: 8px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .card { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .input-group { display: flex; gap: 10px; margin-top: 15px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .add-btn { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
-        th { background-color: #f8f9fa; text-align: left; padding: 12px; border-bottom: 2px solid #ddd; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        .del-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100">
 
-    <div id="loginScreen" class="login-container">
-        <h2 style="color: #2c3e50;">🔒 Business Login</h2>
-        <input type="email" id="email" class="login-input" placeholder="Email Address">
-        <input type="password" id="password" class="login-input" placeholder="Password">
-        <button class="login-btn" onclick="login()">Login to System</button>
-        <p id="errorMsg" style="color:red; margin-top:15px; font-size: 14px;"></p>
-    </div>
-
-    <div id="dashboardScreen" class="container hide">
-        <div class="header">
-            <h3>📦 Smart Stock Manager</h3>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-        <div class="card">
-            <h3>Add New Item</h3>
-            <div class="input-group">
-                <input type="text" id="itemName" placeholder="Item Name">
-                <input type="number" id="itemQty" placeholder="Quantity">
-                <input type="number" id="itemPrice" placeholder="Price">
-                <button class="add-btn" onclick="addItem()">+ Add</button>
+    <div id="app">
+        <div class="flex h-screen items-center justify-center">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mb-4 mx-auto"></div>
+                <h2 class="text-2xl font-black tracking-tighter uppercase">NexStore.OS Loading...</h2>
             </div>
-        </div>
-        <div class="card">
-            <h3>Current Inventory</h3>
-            <table id="itemTable">
-                <thead>
-                    <tr><th>Item Name</th><th>Qty</th><th>Price</th><th>Action</th></tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
         </div>
     </div>
 
     <script>
-        // --- Firebase Config (ඔබේ පවතින Config එක) ---
+        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
             authDomain: "crypto-learner-4dc25.firebaseapp.com",
@@ -75,78 +40,131 @@
         };
 
         firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
         const auth = firebase.auth();
-        const db = firebase.firestore(); // ✅ Firestore සම්බන්ධ කළා
 
-        function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    document.getElementById('loginScreen').classList.add('hide');
-                    document.getElementById('dashboardScreen').classList.remove('hide');
-                    listenToItems(); // ✅ රියල් ටයිම් අප්ඩේට් එක පටන් ගන්න
-                })
-                .catch((error) => {
-                    document.getElementById('errorMsg').innerText = "Login Failed: " + error.message;
-                });
+        // --- Core Functions ---
+        async function loadApp() {
+            const user = auth.currentUser;
+            if (!user) {
+                renderLanding();
+            } else {
+                renderDashboard();
+            }
         }
 
-        function logout() {
-            auth.signOut().then(() => location.reload());
+        function renderLanding() {
+            document.getElementById('app').innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-6">
+                    <div class="max-w-md w-full bg-white p-12 rounded-[4rem] text-center shadow-2xl">
+                        <div class="bg-blue-600 text-white w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl">
+                            <i data-lucide="shield-check" size="48"></i>
+                        </div>
+                        <h1 class="text-5xl font-black text-slate-900 tracking-tighter">NexStore.OS</h1>
+                        <p class="text-slate-400 font-black uppercase tracking-[0.4em] text-[10px] mt-4 mb-12">Universal Control Hub</p>
+                        <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-blue-600 transition-all active:scale-95">Admin Portal Login</button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
         }
 
-        // ✅ Firestore හරහා ඩේටා ලෝඩ් කිරීම (Render අවශ්‍ය නැත)
-        function listenToItems() {
-            db.collection("items").onSnapshot((snapshot) => {
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = ''; 
-                snapshot.forEach((doc) => {
-                    const item = doc.data();
-                    tbody.innerHTML += `<tr>
-                        <td>${item.name}</td>
-                        <td>${item.qty}</td>
-                        <td>${item.price}</td>
-                        <td><button class="del-btn" onclick="deleteItem('${doc.id}')">Delete</button></td>
-                    </tr>`;
+        async function handleLogin() {
+            // මෙහිදී දැනට ස්වයංක්‍රීයව ලොග් වීමට සලස්වා ඇත. සැබෑ පද්ධතියකදී Email/PW යොදන්න.
+            auth.signInWithEmailAndPassword("admin@shop.com", "123456")
+                .then(() => renderDashboard())
+                .catch(err => alert("Login Error: " + err.message));
+        }
+
+        function renderDashboard() {
+            document.getElementById('app').innerHTML = `
+                <div class="flex h-screen bg-slate-50 text-slate-800 overflow-hidden">
+                    <aside class="w-64 bg-slate-900 flex flex-col shadow-2xl">
+                        <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                            <span class="text-white font-black text-xl tracking-tighter">NexStore<span class="text-blue-500">.OS</span></span>
+                        </div>
+                        <nav class="flex-1 p-4 space-y-2">
+                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl text-slate-500 hover:bg-slate-800 hover:text-white font-black uppercase text-[10px] tracking-widest"><i data-lucide="package"></i> Inventory</button>
+                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl text-slate-500 hover:bg-slate-800 hover:text-white font-black uppercase text-[10px] tracking-widest"><i data-lucide="smartphone"></i> POS Terminal</button>
+                        </nav>
+                        <div class="p-4 border-t border-slate-800">
+                             <button onclick="auth.signOut().then(() => renderLanding())" class="flex items-center gap-3 text-slate-500 hover:text-white transition w-full px-2"><i data-lucide="log-out"></i> <span class="font-bold text-xs uppercase">Logout</span></button>
+                        </div>
+                    </aside>
+
+                    <main class="flex-1 flex flex-col">
+                        <header class="h-16 bg-white border-b flex items-center justify-between px-8">
+                            <div class="text-[10px] bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-100 font-black uppercase">Master Admin Node</div>
+                            <div class="font-black text-sm">Gayan Gunasekara</div>
+                        </header>
+                        <div class="p-10 overflow-auto bg-slate-50 h-full">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                                <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200">
+                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Inventory Assets</p>
+                                    <h3 id="stockValue" class="text-3xl font-black text-slate-900 tracking-tighter">$0.00</h3>
+                                </div>
+                                <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200">
+                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Critical Alerts</p>
+                                    <h3 id="alertCount" class="text-3xl font-black text-red-500 tracking-tighter">0</h3>
+                                </div>
+                                <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200">
+                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Active SKUs</p>
+                                    <h3 id="skuCount" class="text-3xl font-black text-blue-600 tracking-tighter">0</h3>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-[2.5rem] shadow-sm border p-8">
+                                <h2 class="text-2xl font-black mb-6">Live SKU Ledger</h2>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm">
+                                        <thead class="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b">
+                                            <tr><th class="pb-4">Product</th><th class="pb-4">Stock</th><th class="pb-4">Price</th><th class="pb-4 text-right">Status</th></tr>
+                                        </thead>
+                                        <tbody id="inventoryBody" class="divide-y">
+                                            <tr><td colspan="4" class="p-10 text-center text-slate-400">Loading Matrix...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `;
+            lucide.createIcons();
+            syncData();
+        }
+
+        function syncData() {
+            db.collection("items").onSnapshot(snapshot => {
+                let totalVal = 0;
+                let alerts = 0;
+                const body = document.getElementById('inventoryBody');
+                body.innerHTML = "";
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalVal += (data.price * data.qty);
+                    if(data.qty < 20) alerts++;
+
+                    body.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-all">
+                            <td class="py-5 font-black text-slate-900">${data.name}<br><span class="text-[10px] text-blue-600 uppercase tracking-tighter">${data.sku || 'SKU-001'}</span></td>
+                            <td class="py-5 font-bold">${data.qty} Units</td>
+                            <td class="py-5 font-black text-blue-700">$${data.price}</td>
+                            <td class="py-5 text-right"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${data.qty < 20 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}">${data.qty < 20 ? 'LOW STOCK' : 'OPTIMAL'}</span></td>
+                        </tr>
+                    `;
                 });
-            }, (error) => {
-                console.error("Firestore Error:", error);
-                alert("Database Permission Error. Please check your Firestore Rules.");
+
+                document.getElementById('stockValue').innerText = "$" + totalVal.toLocaleString();
+                document.getElementById('alertCount').innerText = alerts;
+                document.getElementById('skuCount').innerText = snapshot.size;
             });
         }
 
-        async function addItem() {
-            const name = document.getElementById('itemName').value;
-            const qty = document.getElementById('itemQty').value;
-            const price = document.getElementById('itemPrice').value;
-
-            if(!name || !qty || !price) return alert("Please fill all fields");
-
-            try {
-                await db.collection("items").add({
-                    name: name,
-                    qty: parseInt(qty),
-                    price: parseFloat(price),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemQty').value = '';
-                document.getElementById('itemPrice').value = '';
-            } catch (err) {
-                alert("Error saving to database: " + err.message);
-            }
-        }
-
-        async function deleteItem(id) {
-            if(confirm("Delete this item?")) {
-                try {
-                    await db.collection("items").doc(id).delete();
-                } catch (err) {
-                    alert("Delete failed: " + err.message);
-                }
-            }
-        }
+        // --- Start System ---
+        auth.onAuthStateChanged(loadApp);
     </script>
 </body>
 </html>
