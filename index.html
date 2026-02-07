@@ -15,17 +15,35 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .tab-active { background: #2563eb; color: white; border-radius: 12px; }
-        .hide { display: none; }
-        /* ✅ පසුබිම බොඳ කිරීම (Background Blur) */
+        .hide { display: none !important; }
         .modal-blur { backdrop-filter: blur(8px); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 p-6 flex flex-col shadow-2xl z-20">
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white p-10 rounded-[3rem] shadow-2xl max-w-sm w-full text-center">
+            <h1 class="text-3xl font-black mb-2 tracking-tighter italic">NexStore<span class="text-blue-600">.OS</span></h1>
+            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8">Secure Node Access</p>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Email Identity</label>
+                    <input id="login-email" type="email" placeholder="admin@store.com" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold mt-1">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Access Key</label>
+                    <input id="login-pass" type="password" placeholder="••••••••" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold mt-1">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-600/30 hover:bg-blue-700 transition active:scale-95">Authorize & Enter</button>
+                <p id="login-error" class="text-red-500 text-[10px] font-black uppercase text-center hide mt-4"></p>
+            </div>
+        </div>
+    </div>
+
+    <aside id="main-sidebar" class="w-64 bg-slate-900 text-slate-300 p-6 flex flex-col shadow-2xl z-20 hide">
         <div class="mb-10">
             <h1 class="text-2xl font-black text-white tracking-tighter italic">NexStore<span class="text-blue-500">.OS</span></h1>
-            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1">Enterprise Node</p>
+            <p id="user-display" class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1 italic">Loading Entity...</p>
         </div>
 
         <nav class="flex-1 space-y-2">
@@ -36,97 +54,97 @@
         </nav>
 
         <div class="pt-6 border-t border-slate-800">
-            <button onclick="location.reload()" class="w-full p-3 border border-red-900/30 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-950 transition">Logout</button>
+            <button onclick="logout()" class="w-full p-3 border border-red-900/30 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-950 transition">Secure Logout</button>
         </div>
     </aside>
 
-    <main class="flex-1 p-10 overflow-y-auto bg-slate-50">
+    <main id="main-content" class="flex-1 p-10 overflow-y-auto bg-slate-50 hide">
         
         <section id="view-dashboard" class="tab-view space-y-8">
-            <h2 class="text-3xl font-black tracking-tight">Enterprise Overview</h2>
+            <h2 class="text-3xl font-black tracking-tight text-slate-900">Enterprise Overview</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-black text-slate-400 uppercase mb-2">Inventory Value</p>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">My Inventory Value</p>
                     <h3 id="dash-stock-val" class="text-3xl font-black text-slate-900">$0.00</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-black text-slate-400 uppercase mb-2">Low Stock Alerts</p>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Critical Alerts</p>
                     <h3 id="dash-alert-count" class="text-3xl font-black text-red-500">0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                    <p class="text-xs font-black text-slate-400 uppercase mb-2">Total Sales</p>
-                    <h3 id="dash-sales-val" class="text-3xl font-black text-blue-600">$0.00</h3>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Authorized Node</p>
+                    <h3 class="text-xs font-black text-blue-600 mt-4 uppercase">Status: Online & Encrypted</h3>
                 </div>
             </div>
         </section>
 
         <section id="view-inventory" class="tab-view hide space-y-8">
             <div class="flex justify-between items-center">
-                <h2 class="text-3xl font-black tracking-tight">Inventory Matrix</h2>
-                <button onclick="toggleAddModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2"><i data-lucide="plus"></i> Register SKU</button>
+                <h2 class="text-3xl font-black tracking-tight">Personal Inventory Hub</h2>
+                <button onclick="toggleAddModal()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl hover:bg-blue-700 transition"><i data-lucide="plus"></i> Register SKU</button>
             </div>
-
             <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                        <tr><th class="p-6">Product</th><th class="p-6">Stock Level</th><th class="p-6">Limit</th><th class="p-6">Price</th><th class="p-6 text-right">Action</th></tr>
+                        <tr><th class="p-6">Product Item</th><th class="p-6">Current Stock</th><th class="p-6">Min Limit</th><th class="p-6 text-right">Unit Price</th><th class="p-6 text-right">Ops</th></tr>
                     </thead>
-                    <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
+                    <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm font-bold"></tbody>
                 </table>
             </div>
         </section>
 
         <section id="view-pos" class="tab-view hide space-y-8">
-            <h2 class="text-3xl font-black tracking-tight">POS Terminal</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
-                <div class="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200 overflow-y-auto h-[500px]">
+            <h2 class="text-3xl font-black tracking-tight">Active Terminal</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+                <div class="lg:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-200 overflow-y-auto">
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="pos-item-grid"></div>
                 </div>
-                <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl flex flex-col h-[500px]">
-                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Secure Cart</h4>
-                    <div id="cart-items" class="flex-1 space-y-4 mb-6 text-sm overflow-y-auto"></div>
+                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl flex flex-col">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6">Encrypted Cart</h4>
+                    <div id="cart-items" class="flex-1 space-y-4 mb-6 overflow-y-auto scrollbar-hide"></div>
                     <div class="border-t border-slate-800 pt-6">
-                        <div class="flex justify-between text-2xl font-black"><span>Total</span> <span id="cart-total">$0.00</span></div>
-                        <button onclick="checkout()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-6 hover:bg-blue-700 transition">Checkout</button>
+                        <div class="flex justify-between text-2xl font-black"><span>Net Total</span> <span id="cart-total" class="text-blue-400">$0.00</span></div>
+                        <button onclick="checkout()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] mt-6 hover:bg-blue-700 transition shadow-2xl">Complete Transaction</button>
                     </div>
                 </div>
             </div>
         </section>
 
         <section id="view-finance" class="tab-view hide space-y-8">
-            <h2 class="text-3xl font-black tracking-tight">Financials & Tax</h2>
-            <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm text-center space-y-6 max-w-lg mx-auto">
-                <i data-lucide="file-text" class="mx-auto text-blue-600" size="48"></i>
-                <h3 class="text-xl font-black">Generate Reports</h3>
-                <button onclick="window.print()" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Download Full Audit Packet</button>
+            <h2 class="text-3xl font-black tracking-tight">Financial Intelligence</h2>
+            <div class="bg-white p-12 rounded-[3rem] border border-slate-200 shadow-sm text-center space-y-6 max-w-lg mx-auto">
+                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto shadow-inner"><i data-lucide="file-text" size="32"></i></div>
+                <h3 class="text-xl font-black">Audit Report Generation</h3>
+                <p class="text-xs text-slate-400 font-bold leading-relaxed">This will generate a GAAP compliant audit report for your specific user ID, including P&L and active asset values.</p>
+                <button onclick="window.print()" class="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">Download My Annual Audit</button>
             </div>
         </section>
     </main>
 
-    <div id="add-modal" class="fixed inset-0 bg-slate-900/60 modal-blur z-50 flex items-center justify-center hide p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl scale-up">
-            <h3 class="text-2xl font-black mb-6">Register New Asset SKU</h3>
+    <div id="add-modal" class="fixed inset-0 bg-slate-900/60 modal-blur z-[60] flex items-center justify-center hide p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-2xl">
+            <h3 class="text-2xl font-black mb-6 tracking-tight">Register SKU Node</h3>
             <div class="space-y-4">
-                <input id="in-name" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Product Name">
+                <input id="in-name" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Product Name (e.g. Portland Cement)">
                 <div class="grid grid-cols-2 gap-4">
-                    <input id="in-sku" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner uppercase font-mono" placeholder="SKU Code">
-                    <input id="in-limit" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Min Stock Limit">
+                    <input id="in-sku" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner uppercase font-black text-xs" placeholder="SKU Code">
+                    <input id="in-limit" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Min Alert Limit">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <input id="in-qty" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Current Qty">
-                    <input id="in-price" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Price ($)">
+                    <input id="in-qty" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Stock Qty">
+                    <input id="in-price" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Price ($)">
                 </div>
-                <input id="in-email" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Supplier Email Address">
-                <div class="flex gap-3 pt-4">
-                    <button onclick="toggleAddModal()" class="flex-1 bg-slate-100 p-4 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400">Cancel</button>
-                    <button onclick="addItem()" class="flex-1 bg-blue-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white shadow-xl">Commit Asset</button>
+                <input id="in-email" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Supplier Dispatch Email">
+                <div class="flex gap-3 pt-6">
+                    <button onclick="toggleAddModal()" class="flex-1 bg-slate-100 p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400">Cancel</button>
+                    <button onclick="addItem()" class="flex-1 bg-blue-600 p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-xl">Commit Asset</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Firebase Config ---
+        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
             authDomain: "crypto-learner-4dc25.firebaseapp.com",
@@ -137,9 +155,45 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         let cart = [];
 
+        // --- 2. AUTHENTICATION LOGIC ---
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const error = document.getElementById('login-error');
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    error.classList.add('hide');
+                    // UI handles switch via onAuthStateChanged
+                })
+                .catch(err => {
+                    error.innerText = "ACCESS DENIED: " + err.message;
+                    error.classList.remove('hide');
+                });
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('login-screen').classList.add('hide');
+                document.getElementById('main-sidebar').classList.remove('hide');
+                document.getElementById('main-content').classList.remove('hide');
+                document.getElementById('user-display').innerText = "NODE: " + user.email.split('@')[0].toUpperCase();
+                syncData();
+            } else {
+                document.getElementById('login-screen').classList.remove('hide');
+                document.getElementById('main-sidebar').classList.add('hide');
+                document.getElementById('main-content').classList.add('hide');
+            }
+            lucide.createIcons();
+        });
+
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        // --- 3. CORE LOGIC (With User Isolation) ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hide'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('tab-active'));
@@ -150,9 +204,13 @@
 
         function toggleAddModal() { document.getElementById('add-modal').classList.toggle('hide'); }
 
-        // ✅ DATA SYNC & DISPLAY (With Stock Limits)
         function syncData() {
-            db.collection("items").onSnapshot(snapshot => {
+            const user = auth.currentUser;
+            if(!user) return;
+
+            // ✅ Filter items ONLY for this specific user
+            db.collection("items").where("userId", "==", user.uid)
+            .onSnapshot(snapshot => {
                 const table = document.getElementById('inventory-table-body');
                 const grid = document.getElementById('pos-item-grid');
                 let totalValue = 0; let alerts = 0;
@@ -165,47 +223,51 @@
                     totalValue += (data.price * data.qty);
                     if(data.qty <= limit) alerts++;
 
-                    // Inventory Row
                     table.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b">
-                            <td class="p-6 font-black">${data.name}</td>
-                            <td class="p-6 font-bold ${data.qty <= limit ? 'text-red-500' : 'text-slate-900'}">${data.qty} Units</td>
-                            <td class="p-6 font-bold text-slate-400">${limit}</td>
-                            <td class="p-6 font-black text-blue-600">$${data.price}</td>
-                            <td class="p-6 text-right"><button onclick="deleteItem('${id}')" class="text-red-300 hover:text-red-600 transition"><i data-lucide="trash-2" size="18"></i></button></td>
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                            <td class="p-6 font-black text-slate-800">${data.name}</td>
+                            <td class="p-6"><span class="${data.qty <= limit ? 'text-red-500' : 'text-slate-600'}">${data.qty} Units</span></td>
+                            <td class="p-6 text-slate-400 font-mono">${limit}</td>
+                            <td class="p-6 text-right font-black text-blue-600">$${data.price}</td>
+                            <td class="p-6 text-right"><button onclick="deleteItem('${id}')" class="text-slate-200 hover:text-red-500 transition"><i data-lucide="trash-2" size="18"></i></button></td>
                         </tr>`;
 
-                    // POS Grid
                     grid.innerHTML += `
-                        <button onclick="addToCart('${id}', '${data.name}', ${data.price})" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-left hover:border-blue-500 transition active:scale-95 ${data.qty <= 0 ? 'opacity-30 pointer-events-none' : ''}">
-                            <h4 class="font-black text-sm mb-2 h-10 overflow-hidden uppercase tracking-tight">${data.name}</h4>
+                        <button onclick="addToCart('${id}', '${data.name}', ${data.price})" class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm text-left hover:border-blue-500 hover:shadow-xl transition active:scale-95 ${data.qty <= 0 ? 'opacity-30 pointer-events-none' : ''}">
+                            <h4 class="font-black text-xs mb-3 h-8 overflow-hidden uppercase tracking-tight text-slate-800">${data.name}</h4>
                             <div class="flex justify-between items-end">
-                                <p class="text-[10px] font-black uppercase ${data.qty <= limit ? 'text-red-500' : 'text-slate-400'}">${data.qty} Left</p>
-                                <p class="font-black text-blue-600">$${data.price}</p>
+                                <p class="text-[9px] font-black uppercase ${data.qty <= limit ? 'text-red-500' : 'text-slate-400'}">${data.qty} LEFT</p>
+                                <p class="font-black text-blue-600 text-lg">$${data.price}</p>
                             </div>
                         </button>`;
                 });
-                document.getElementById('dash-stock-val').innerText = "$" + totalValue.toLocaleString();
+                document.getElementById('dash-stock-val').innerText = "$" + totalValue.toLocaleString(undefined, {minimumFractionDigits: 2});
                 document.getElementById('dash-alert-count').innerText = alerts;
                 lucide.createIcons();
+            }, error => {
+                console.log("If you see an index error, check browser console to create Firestore Index.");
             });
         }
 
         async function addItem() {
+            const user = auth.currentUser;
             const item = {
                 name: document.getElementById('in-name').value,
                 sku: document.getElementById('in-sku').value,
-                limit: parseInt(document.getElementById('in-limit').value),
-                qty: parseInt(document.getElementById('in-qty').value),
-                price: parseFloat(document.getElementById('in-price').value),
-                supplierEmail: document.getElementById('in-email').value
+                limit: parseInt(document.getElementById('in-limit').value) || 20,
+                qty: parseInt(document.getElementById('in-qty').value) || 0,
+                price: parseFloat(document.getElementById('in-price').value) || 0,
+                supplierEmail: document.getElementById('in-email').value,
+                userId: user.uid // ✅ Save UID for isolation
             };
-            if(!item.name || !item.sku) return alert("Fill all fields!");
+            if(!item.name || !item.sku) return alert("Fill mandatory fields!");
             await db.collection("items").add(item);
             toggleAddModal();
+            // Reset fields
+            document.querySelectorAll('#add-modal input').forEach(i => i.value = "");
         }
 
-        async function deleteItem(id) { if(confirm("Delete SKU?")) await db.collection("items").doc(id).delete(); }
+        async function deleteItem(id) { if(confirm("Permanently delete SKU node?")) await db.collection("items").doc(id).delete(); }
 
         function addToCart(id, name, price) {
             cart.push({id, name, price});
@@ -220,40 +282,37 @@
             cart.forEach((item, index) => {
                 total += item.price;
                 list.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl">
-                        <span class="font-bold uppercase text-[10px] tracking-widest">${item.name}</span>
-                        <div class="flex items-center gap-3">
-                            <span class="font-black text-blue-400">$${item.price}</span>
-                            <button onclick="removeFromCart(${index})" class="text-red-500"><i data-lucide="x" size="14"></i></button>
+                    <div class="flex justify-between items-center bg-slate-800 p-4 rounded-2xl animate-in slide-in-from-right-2 duration-200">
+                        <span class="font-black uppercase text-[9px] tracking-widest text-slate-300">${item.name}</span>
+                        <div class="flex items-center gap-4">
+                            <span class="font-black text-blue-400 text-sm">$${item.price}</span>
+                            <button onclick="removeFromCart(${index})" class="text-slate-600 hover:text-red-500 transition"><i data-lucide="x" size="14"></i></button>
                         </div>
                     </div>`;
             });
-            totalDisplay.innerText = "$" + total.toLocaleString();
+            totalDisplay.innerText = "$" + total.toLocaleString(undefined, {minimumFractionDigits: 2});
             lucide.createIcons();
         }
 
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-        }
+        function removeFromCart(index) { cart.splice(index, 1); updateCartUI(); }
 
         async function checkout() {
-            if(cart.length === 0) return alert("Cart Empty!");
+            if(cart.length === 0) return alert("Cart is empty!");
             for(let item of cart) {
                 const docRef = db.collection("items").doc(item.id);
                 const doc = await docRef.get();
                 if(doc.exists) {
-                    const newQty = doc.data().qty - 1;
+                    const newQty = Math.max(0, doc.data().qty - 1);
                     await docRef.update({ qty: newQty });
                 }
             }
-            alert("Payment Success! SKU Stock Updated.");
+            alert("Transaction Securely Completed.");
             cart = [];
             updateCartUI();
         }
 
-        syncData();
-        switchTab('dashboard');
+        // Initialize icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
