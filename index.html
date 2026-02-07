@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexStore.OS | Professional Stock Hub</title>
+    <title>NexStore.OS | Enterprise Grade ERP</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -14,22 +14,119 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .tab-active { background: #2563eb; color: white; border-radius: 12px; }
+        .hide { display: none; }
+        /* ✅ පසුබිම බොඳ කිරීම (Background Blur) */
+        .modal-blur { backdrop-filter: blur(8px); }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100">
+<body class="bg-slate-50 text-slate-900 h-screen flex overflow-hidden">
 
-    <div id="app">
-        <div class="flex h-screen items-center justify-center">
-            <div class="text-center">
-                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mb-4 mx-auto"></div>
-                <h2 class="text-2xl font-black tracking-tighter uppercase">NexStore.OS Loading...</h2>
+    <aside class="w-64 bg-slate-900 text-slate-300 p-6 flex flex-col shadow-2xl z-20">
+        <div class="mb-10">
+            <h1 class="text-2xl font-black text-white tracking-tighter italic">NexStore<span class="text-blue-500">.OS</span></h1>
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1">Enterprise Node</p>
+        </div>
+
+        <nav class="flex-1 space-y-2">
+            <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition rounded-xl" id="tab-dashboard"><i data-lucide="layout-dashboard" size="18"></i> Dashboard</button>
+            <button onclick="switchTab('pos')" class="nav-btn w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition rounded-xl" id="tab-pos"><i data-lucide="smartphone" size="18"></i> POS Terminal</button>
+            <button onclick="switchTab('inventory')" class="nav-btn w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition rounded-xl" id="tab-inventory"><i data-lucide="package" size="18"></i> Inventory</button>
+            <button onclick="switchTab('finance')" class="nav-btn w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition rounded-xl" id="tab-finance"><i data-lucide="bar-chart-3" size="18"></i> Financials</button>
+        </nav>
+
+        <div class="pt-6 border-t border-slate-800">
+            <button onclick="location.reload()" class="w-full p-3 border border-red-900/30 text-red-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-950 transition">Logout</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto bg-slate-50">
+        
+        <section id="view-dashboard" class="tab-view space-y-8">
+            <h2 class="text-3xl font-black tracking-tight">Enterprise Overview</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <p class="text-xs font-black text-slate-400 uppercase mb-2">Inventory Value</p>
+                    <h3 id="dash-stock-val" class="text-3xl font-black text-slate-900">$0.00</h3>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <p class="text-xs font-black text-slate-400 uppercase mb-2">Low Stock Alerts</p>
+                    <h3 id="dash-alert-count" class="text-3xl font-black text-red-500">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <p class="text-xs font-black text-slate-400 uppercase mb-2">Total Sales</p>
+                    <h3 id="dash-sales-val" class="text-3xl font-black text-blue-600">$0.00</h3>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-inventory" class="tab-view hide space-y-8">
+            <div class="flex justify-between items-center">
+                <h2 class="text-3xl font-black tracking-tight">Inventory Matrix</h2>
+                <button onclick="toggleAddModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2"><i data-lucide="plus"></i> Register SKU</button>
+            </div>
+
+            <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                        <tr><th class="p-6">Product</th><th class="p-6">Stock Level</th><th class="p-6">Limit</th><th class="p-6">Price</th><th class="p-6 text-right">Action</th></tr>
+                    </thead>
+                    <tbody id="inventory-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="view-pos" class="tab-view hide space-y-8">
+            <h2 class="text-3xl font-black tracking-tight">POS Terminal</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+                <div class="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200 overflow-y-auto h-[500px]">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="pos-item-grid"></div>
+                </div>
+                <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl flex flex-col h-[500px]">
+                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Secure Cart</h4>
+                    <div id="cart-items" class="flex-1 space-y-4 mb-6 text-sm overflow-y-auto"></div>
+                    <div class="border-t border-slate-800 pt-6">
+                        <div class="flex justify-between text-2xl font-black"><span>Total</span> <span id="cart-total">$0.00</span></div>
+                        <button onclick="checkout()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-6 hover:bg-blue-700 transition">Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-finance" class="tab-view hide space-y-8">
+            <h2 class="text-3xl font-black tracking-tight">Financials & Tax</h2>
+            <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm text-center space-y-6 max-w-lg mx-auto">
+                <i data-lucide="file-text" class="mx-auto text-blue-600" size="48"></i>
+                <h3 class="text-xl font-black">Generate Reports</h3>
+                <button onclick="window.print()" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Download Full Audit Packet</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="add-modal" class="fixed inset-0 bg-slate-900/60 modal-blur z-50 flex items-center justify-center hide p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl scale-up">
+            <h3 class="text-2xl font-black mb-6">Register New Asset SKU</h3>
+            <div class="space-y-4">
+                <input id="in-name" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner font-bold" placeholder="Product Name">
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="in-sku" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner uppercase font-mono" placeholder="SKU Code">
+                    <input id="in-limit" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Min Stock Limit">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="in-qty" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Current Qty">
+                    <input id="in-price" type="number" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Price ($)">
+                </div>
+                <input id="in-email" class="w-full p-4 bg-slate-50 rounded-2xl border-none shadow-inner" placeholder="Supplier Email Address">
+                <div class="flex gap-3 pt-4">
+                    <button onclick="toggleAddModal()" class="flex-1 bg-slate-100 p-4 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400">Cancel</button>
+                    <button onclick="addItem()" class="flex-1 bg-blue-600 p-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white shadow-xl">Commit Asset</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Firebase Configuration ---
+        // --- Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
             authDomain: "crypto-learner-4dc25.firebaseapp.com",
@@ -38,133 +135,125 @@
             messagingSenderId: "172453528799",
             appId: "1:172453528799:web:a14e3a9a26700aabcd556a"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
 
-        // --- Core Functions ---
-        async function loadApp() {
-            const user = auth.currentUser;
-            if (!user) {
-                renderLanding();
-            } else {
-                renderDashboard();
-            }
-        }
+        let cart = [];
 
-        function renderLanding() {
-            document.getElementById('app').innerHTML = `
-                <div class="min-h-screen flex items-center justify-center p-6">
-                    <div class="max-w-md w-full bg-white p-12 rounded-[4rem] text-center shadow-2xl">
-                        <div class="bg-blue-600 text-white w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl">
-                            <i data-lucide="shield-check" size="48"></i>
-                        </div>
-                        <h1 class="text-5xl font-black text-slate-900 tracking-tighter">NexStore.OS</h1>
-                        <p class="text-slate-400 font-black uppercase tracking-[0.4em] text-[10px] mt-4 mb-12">Universal Control Hub</p>
-                        <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-blue-600 transition-all active:scale-95">Admin Portal Login</button>
-                    </div>
-                </div>
-            `;
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hide'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('view-' + tabId).classList.remove('hide');
+            document.getElementById('tab-' + tabId).classList.add('tab-active');
             lucide.createIcons();
         }
 
-        async function handleLogin() {
-            // මෙහිදී දැනට ස්වයංක්‍රීයව ලොග් වීමට සලස්වා ඇත. සැබෑ පද්ධතියකදී Email/PW යොදන්න.
-            auth.signInWithEmailAndPassword("admin@shop.com", "123456")
-                .then(() => renderDashboard())
-                .catch(err => alert("Login Error: " + err.message));
-        }
+        function toggleAddModal() { document.getElementById('add-modal').classList.toggle('hide'); }
 
-        function renderDashboard() {
-            document.getElementById('app').innerHTML = `
-                <div class="flex h-screen bg-slate-50 text-slate-800 overflow-hidden">
-                    <aside class="w-64 bg-slate-900 flex flex-col shadow-2xl">
-                        <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-                            <span class="text-white font-black text-xl tracking-tighter">NexStore<span class="text-blue-500">.OS</span></span>
-                        </div>
-                        <nav class="flex-1 p-4 space-y-2">
-                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl text-slate-500 hover:bg-slate-800 hover:text-white font-black uppercase text-[10px] tracking-widest"><i data-lucide="package"></i> Inventory</button>
-                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl text-slate-500 hover:bg-slate-800 hover:text-white font-black uppercase text-[10px] tracking-widest"><i data-lucide="smartphone"></i> POS Terminal</button>
-                        </nav>
-                        <div class="p-4 border-t border-slate-800">
-                             <button onclick="auth.signOut().then(() => renderLanding())" class="flex items-center gap-3 text-slate-500 hover:text-white transition w-full px-2"><i data-lucide="log-out"></i> <span class="font-bold text-xs uppercase">Logout</span></button>
-                        </div>
-                    </aside>
-
-                    <main class="flex-1 flex flex-col">
-                        <header class="h-16 bg-white border-b flex items-center justify-between px-8">
-                            <div class="text-[10px] bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-100 font-black uppercase">Master Admin Node</div>
-                            <div class="font-black text-sm">Gayan Gunasekara</div>
-                        </header>
-                        <div class="p-10 overflow-auto bg-slate-50 h-full">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-                                <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Inventory Assets</p>
-                                    <h3 id="stockValue" class="text-3xl font-black text-slate-900 tracking-tighter">$0.00</h3>
-                                </div>
-                                <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Critical Alerts</p>
-                                    <h3 id="alertCount" class="text-3xl font-black text-red-500 tracking-tighter">0</h3>
-                                </div>
-                                <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Active SKUs</p>
-                                    <h3 id="skuCount" class="text-3xl font-black text-blue-600 tracking-tighter">0</h3>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white rounded-[2.5rem] shadow-sm border p-8">
-                                <h2 class="text-2xl font-black mb-6">Live SKU Ledger</h2>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left text-sm">
-                                        <thead class="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b">
-                                            <tr><th class="pb-4">Product</th><th class="pb-4">Stock</th><th class="pb-4">Price</th><th class="pb-4 text-right">Status</th></tr>
-                                        </thead>
-                                        <tbody id="inventoryBody" class="divide-y">
-                                            <tr><td colspan="4" class="p-10 text-center text-slate-400">Loading Matrix...</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-            `;
-            lucide.createIcons();
-            syncData();
-        }
-
+        // ✅ DATA SYNC & DISPLAY (With Stock Limits)
         function syncData() {
             db.collection("items").onSnapshot(snapshot => {
-                let totalVal = 0;
-                let alerts = 0;
-                const body = document.getElementById('inventoryBody');
-                body.innerHTML = "";
-                
+                const table = document.getElementById('inventory-table-body');
+                const grid = document.getElementById('pos-item-grid');
+                let totalValue = 0; let alerts = 0;
+                table.innerHTML = ""; grid.innerHTML = "";
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    totalVal += (data.price * data.qty);
-                    if(data.qty < 20) alerts++;
+                    const id = doc.id;
+                    const limit = data.limit || 20;
+                    totalValue += (data.price * data.qty);
+                    if(data.qty <= limit) alerts++;
 
-                    body.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition-all">
-                            <td class="py-5 font-black text-slate-900">${data.name}<br><span class="text-[10px] text-blue-600 uppercase tracking-tighter">${data.sku || 'SKU-001'}</span></td>
-                            <td class="py-5 font-bold">${data.qty} Units</td>
-                            <td class="py-5 font-black text-blue-700">$${data.price}</td>
-                            <td class="py-5 text-right"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${data.qty < 20 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}">${data.qty < 20 ? 'LOW STOCK' : 'OPTIMAL'}</span></td>
-                        </tr>
-                    `;
+                    // Inventory Row
+                    table.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition border-b">
+                            <td class="p-6 font-black">${data.name}</td>
+                            <td class="p-6 font-bold ${data.qty <= limit ? 'text-red-500' : 'text-slate-900'}">${data.qty} Units</td>
+                            <td class="p-6 font-bold text-slate-400">${limit}</td>
+                            <td class="p-6 font-black text-blue-600">$${data.price}</td>
+                            <td class="p-6 text-right"><button onclick="deleteItem('${id}')" class="text-red-300 hover:text-red-600 transition"><i data-lucide="trash-2" size="18"></i></button></td>
+                        </tr>`;
+
+                    // POS Grid
+                    grid.innerHTML += `
+                        <button onclick="addToCart('${id}', '${data.name}', ${data.price})" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-left hover:border-blue-500 transition active:scale-95 ${data.qty <= 0 ? 'opacity-30 pointer-events-none' : ''}">
+                            <h4 class="font-black text-sm mb-2 h-10 overflow-hidden uppercase tracking-tight">${data.name}</h4>
+                            <div class="flex justify-between items-end">
+                                <p class="text-[10px] font-black uppercase ${data.qty <= limit ? 'text-red-500' : 'text-slate-400'}">${data.qty} Left</p>
+                                <p class="font-black text-blue-600">$${data.price}</p>
+                            </div>
+                        </button>`;
                 });
-
-                document.getElementById('stockValue').innerText = "$" + totalVal.toLocaleString();
-                document.getElementById('alertCount').innerText = alerts;
-                document.getElementById('skuCount').innerText = snapshot.size;
+                document.getElementById('dash-stock-val').innerText = "$" + totalValue.toLocaleString();
+                document.getElementById('dash-alert-count').innerText = alerts;
+                lucide.createIcons();
             });
         }
 
-        // --- Start System ---
-        auth.onAuthStateChanged(loadApp);
+        async function addItem() {
+            const item = {
+                name: document.getElementById('in-name').value,
+                sku: document.getElementById('in-sku').value,
+                limit: parseInt(document.getElementById('in-limit').value),
+                qty: parseInt(document.getElementById('in-qty').value),
+                price: parseFloat(document.getElementById('in-price').value),
+                supplierEmail: document.getElementById('in-email').value
+            };
+            if(!item.name || !item.sku) return alert("Fill all fields!");
+            await db.collection("items").add(item);
+            toggleAddModal();
+        }
+
+        async function deleteItem(id) { if(confirm("Delete SKU?")) await db.collection("items").doc(id).delete(); }
+
+        function addToCart(id, name, price) {
+            cart.push({id, name, price});
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-items');
+            const totalDisplay = document.getElementById('cart-total');
+            list.innerHTML = "";
+            let total = 0;
+            cart.forEach((item, index) => {
+                total += item.price;
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl">
+                        <span class="font-bold uppercase text-[10px] tracking-widest">${item.name}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="font-black text-blue-400">$${item.price}</span>
+                            <button onclick="removeFromCart(${index})" class="text-red-500"><i data-lucide="x" size="14"></i></button>
+                        </div>
+                    </div>`;
+            });
+            totalDisplay.innerText = "$" + total.toLocaleString();
+            lucide.createIcons();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        async function checkout() {
+            if(cart.length === 0) return alert("Cart Empty!");
+            for(let item of cart) {
+                const docRef = db.collection("items").doc(item.id);
+                const doc = await docRef.get();
+                if(doc.exists) {
+                    const newQty = doc.data().qty - 1;
+                    await docRef.update({ qty: newQty });
+                }
+            }
+            alert("Payment Success! SKU Stock Updated.");
+            cart = [];
+            updateCartUI();
+        }
+
+        syncData();
+        switchTab('dashboard');
     </script>
 </body>
 </html>
