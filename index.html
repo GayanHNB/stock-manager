@@ -1,250 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Global ERP – Platform | © Gayan Gunasekara</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexStore.OS | 3D ERP Solution – © Gayan Gunasekara</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;600&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary: #0f1b33;
+            --accent: #00d9ff;
+            --panel-bg: rgba(15, 27, 51, 0.9);
+            --glow: 0 0 20px rgba(0, 217, 255, 0.6);
+        }
 
-  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: radial-gradient(circle at top right, #1a2d5a, #0a1429);
+            color: #eef2f7;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      min-h-screen;
-    }
-    header {
-      padding: 40px 20px;
-      text-align: center;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(15px);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
-      padding: 40px;
-    }
-    .card {
-      background: rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: all 0.3s ease;
-    }
-    .card:hover { 
-      transform: translateY(-10px); 
-      background: rgba(255,255,255,0.12);
-      border-color: #00c6ff;
-    }
+        .glass {
+            background: var(--panel-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+        }
 
-    button {
-      background: linear-gradient(135deg,#00c6ff,#0072ff);
-      border: none;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 15px;
-      width: 100%;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: opacity 0.2s;
-    }
-    button:active { opacity: 0.8; }
+        .nav-tab.active {
+            background: rgba(0, 217, 255, 0.2);
+            color: var(--accent);
+            box-shadow: var(--glow);
+            border-bottom: 2px solid var(--accent);
+        }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.2);
-      color: white;
-      box-sizing: border-box;
-    }
-    footer {
-      text-align: center;
-      padding: 30px;
-      opacity: 0.7;
-      font-size: 13px;
-      letter-spacing: 1px;
-    }
-    .inventory-list {
-      margin-top: 20px;
-      list-style: none;
-      padding: 0;
-    }
-    .inventory-item {
-      background: rgba(255,255,255,0.05);
-      margin-bottom: 8px;
-      padding: 12px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-    }
-    .warn { color: #ffb703; font-weight: bold; }
-    #financeOutput {
-      margin-top: 15px;
-      padding: 10px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 8px;
-      font-family: monospace;
-    }
-  </style>
+        .btn-3d {
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: #0f1b33;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-3d:hover { transform: translateY(-3px); box-shadow: var(--glow); }
+        .btn-3d:active { transform: translateY(1px); }
+
+        .hide { display: none !important; }
+
+        input, select, textarea {
+            background: rgba(10, 20, 41, 0.8) !important;
+            border: 1px solid rgba(0, 217, 255, 0.3) !important;
+            color: white !important;
+            padding: 12px;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .dashboard-card {
+            background: rgba(26, 45, 90, 0.6);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 217, 255, 0.1);
+            transition: 0.4s;
+        }
+        .dashboard-card:hover { transform: perspective(1000px) rotateX(5deg) translateY(-10px); border-color: var(--accent); }
+
+        .inventory-list-item {
+            background: rgba(255,255,255,0.05);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .warn { color: #ffb703; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<header>
-  <h1>🌐 Global ERP Platform</h1>
-  <p>Inventory • POS • Accounting • Payments • Analytics</p>
-</header>
-
-<div class="container">
-
-  <div class="card">
-    <h3>📦 Inventory Management</h3>
-    <input id="itemName" placeholder="Item Name" />
-    <input id="itemQty" type="number" placeholder="Quantity" />
-    <input id="itemLimit" type="number" placeholder="Low Stock Limit" />
-    <button onclick="addItem()">Update Inventory</button>
-    <p id="invWarn" class="warn"></p>
-    <div id="inventoryContainer" class="inventory-list"></div>
-  </div>
-
-  <div class="card">
-    <h3>🧾 POS Terminal</h3>
-    <p>Connected to global inventory nodes. Records real-time sales transactions.</p>
-    <button onclick="mockSale()">Process Simulation Sale</button>
-  </div>
-
-  <div class="card">
-    <h3>📊 Financial Intelligence</h3>
-    <button onclick="generatePnL()">Generate P&L Statement</button>
-    <button onclick="generateBS()">Generate Balance Sheet</button>
-    <div id="financeOutput">Awaiting data request...</div>
-  </div>
-
-  <div class="card">
-    <h3>🧾 Invoicing & Quotations</h3>
-    <p>Automated VAT-compliant invoice generation for global customers.</p>
-    <button onclick="generateInvoice()">Create Tax Invoice</button>
-  </div>
-
-  <div class="card">
-    <h3>💳 Payment Gateway</h3>
-    <p>IPG Node Status: <span style="color: #27ae60;">Ready to Connect</span></p>
-    <button onclick="alert('Redirecting to IPG Configuration...')">Secure IPG Link</button>
-  </div>
-
+<div id="auth-barrier" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6">
+    <div class="glass p-12 w-full max-w-md text-center">
+        <h1 class="text-3xl font-bold mb-8 italic tracking-tighter" style="font-family: 'Orbitron';">NexStore<span class="text-blue-500">.OS</span></h1>
+        <input id="login-email" type="email" placeholder="Business Email" class="w-full mb-4">
+        <input id="login-pass" type="password" placeholder="Access Key" class="w-full mb-8">
+        <button onclick="handleLogin()" class="btn-3d w-full">Initialize Session</button>
+        <p id="auth-error" class="text-red-500 text-xs mt-4 hide"></p>
+    </div>
 </div>
 
-<footer>
-  © 2026 Gayan Gunasekara – Global ERP Infrastructure Solution
+<div id="main-ui" class="container mx-auto p-6 hide">
+    <header class="flex justify-between items-center mb-10 pb-6 border-b border-blue-500/30">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-500 rounded-xl shadow-lg shadow-blue-500/50 rotate-12"><i class="fas fa-cube text-white text-2xl"></i></div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-widest" style="font-family: 'Orbitron';">GLOBAL ERP</h1>
+                <p class="text-[10px] uppercase tracking-widest opacity-50">© Gayan Gunasekara Infrastructure</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <p id="user-name" class="font-bold text-blue-400">ADMIN NODE</p>
+            <button onclick="auth.signOut().then(()=>location.reload())" class="text-[10px] uppercase text-red-400 font-bold hover:text-white transition">Terminate Session</button>
+        </div>
+    </header>
+
+    <nav class="glass p-2 flex justify-between items-center mb-10">
+        <div class="flex gap-2">
+            <button onclick="switchTab('dash')" class="nav-tab p-3 px-6 rounded-xl font-bold text-xs uppercase active">Dashboard</button>
+            <button onclick="switchTab('inv')" class="nav-tab p-3 px-6 rounded-xl font-bold text-xs uppercase">Inventory</button>
+            <button onclick="switchTab('pos')" class="nav-tab p-3 px-6 rounded-xl font-bold text-xs uppercase">POS System</button>
+            <button onclick="switchTab('fin')" class="nav-tab p-3 px-6 rounded-xl font-bold text-xs uppercase">Accounting</button>
+        </div>
+        <div class="flex gap-4 items-center px-4">
+            <i class="fas fa-circle text-emerald-500 text-[8px] animate-pulse"></i>
+            <span class="text-[10px] font-bold opacity-60">FIREBASE SYNC ACTIVE</span>
+        </div>
+    </nav>
+
+    <main>
+        <section id="view-dash" class="tab-view space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                <div class="dashboard-card">
+                    <p class="text-[10px] uppercase tracking-widest opacity-50 mb-4">Inventory Value</p>
+                    <h2 id="total-val" class="text-3xl font-bold text-blue-400">$0.00</h2>
+                </div>
+                <div class="dashboard-card">
+                    <p class="text-[10px] uppercase tracking-widest opacity-50 mb-4">Stock Alerts</p>
+                    <h2 id="low-count" class="text-3xl font-bold text-red-500">0</h2>
+                </div>
+                <div class="dashboard-card">
+                    <p class="text-[10px] uppercase tracking-widest opacity-50 mb-4">Net Profit (MTD)</p>
+                    <h2 class="text-3xl font-bold text-emerald-400">+$12,450</h2>
+                </div>
+                <div class="dashboard-card bg-blue-600/20">
+                    <p class="text-[10px] uppercase tracking-widest opacity-50 mb-4">System Status</p>
+                    <h2 class="text-xl font-bold uppercase">Optimized</h2>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-inv" class="tab-view hide space-y-8">
+            <div class="glass p-10">
+                <h3 class="text-xl font-bold mb-8 uppercase tracking-tighter italic">Register SKU Node</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <input id="in-name" placeholder="Item Entity Name">
+                    <input id="in-qty" type="number" placeholder="Quantity">
+                    <input id="in-limit" type="number" placeholder="Low Stock Trigger">
+                    <input id="in-price" type="number" placeholder="Unit Price ($)">
+                    <input id="in-email" placeholder="Supplier Alert Email">
+                    <button onclick="addItem()" class="btn-3d">Commit to Hub</button>
+                </div>
+                <p id="inv-warn" class="warn mt-6"></p>
+                <div id="inventory-list" class="mt-10 grid grid-cols-1 gap-4"></div>
+            </div>
+        </section>
+
+        <section id="view-pos" class="tab-view hide">
+            <div class="flex gap-8">
+                <div class="flex-1 glass p-10">
+                    <h3 class="text-xl font-bold mb-8 uppercase italic">Terminal Grid</h3>
+                    <div id="pos-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+                </div>
+                <div class="w-96 glass p-10 border-blue-500/40 border">
+                    <h3 class="text-lg font-bold mb-6 uppercase">Secure Checkout</h3>
+                    <div id="cart" class="space-y-4 mb-10 max-h-60 overflow-y-auto"></div>
+                    <div class="pt-6 border-t border-white/10">
+                        <div class="flex justify-between text-2xl font-bold mb-10 text-blue-400">
+                            <span>Total</span> <span id="cart-total">$0.00</span>
+                        </div>
+                        <button onclick="processSale()" class="btn-3d w-full py-6">Process IPG Transaction</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-fin" class="tab-view hide text-center p-20">
+            <div class="max-w-xl mx-auto space-y-10">
+                <div class="p-10 glass border-emerald-500/30">
+                    <i class="fas fa-file-invoice-dollar text-5xl text-emerald-500 mb-6"></i>
+                    <h2 class="text-2xl font-bold mb-4 uppercase">Financial Reports Node</h2>
+                    <p class="opacity-60 mb-10 text-xs">P&L, Balance Sheets, and Tax Compliance Invoices are auto-parsed per transaction.</p>
+                    <div class="flex gap-4">
+                        <button onclick="alert('Exporting P&L...')" class="btn-3d flex-1 text-[10px]">Profit & Loss</button>
+                        <button onclick="alert('Generating Balance Sheet...')" class="btn-3d flex-1 text-[10px]">Balance Sheet</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<footer class="mt-20 text-center opacity-30 text-[10px] tracking-[0.5em] pb-10">
+    © 2026 GAYAN GUNASEKARA – GLOBAL ERP INFRASTRUCTURE NODE
 </footer>
 
 <script>
-  // 🔥 Firebase Configuration (Synced from your existing project)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
-    authDomain: "crypto-learner-4dc25.firebaseapp.com",
-    projectId: "crypto-learner-4dc25",
-    storageBucket: "crypto-learner-4dc25.firebasestorage.app",
-    messagingSenderId: "172453528799",
-    appId: "1:172453528799:web:a14e3a9a26700aabcd556a"
-  };
+    // 🔐 Firebase Master Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
+        authDomain: "crypto-learner-4dc25.firebaseapp.com",
+        projectId: "crypto-learner-4dc25",
+        storageBucket: "crypto-learner-4dc25.firebasestorage.app",
+        messagingSenderId: "172453528799",
+        appId: "1:172453528799:web:a14e3a9a26700aabcd556a"
+    };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let cart = [];
 
-  // --- Inventory Logic ---
-  async function addItem() {
-    const name = document.getElementById('itemName').value.trim();
-    const qty = Number(document.getElementById('itemQty').value);
-    const limit = Number(document.getElementById('itemLimit').value);
-    
-    if (!name || isNaN(qty) || isNaN(limit)) {
-        alert('Please provide valid Item data.');
-        return;
+    // --- AUTH ---
+    function handleLogin() {
+        const e = document.getElementById('login-email').value;
+        const p = document.getElementById('login-pass').value;
+        auth.signInWithEmailAndPassword(e, p).catch(err => {
+            const errEl = document.getElementById('auth-error');
+            errEl.innerText = "DENIED: " + err.message;
+            errEl.classList.remove('hide');
+        });
     }
 
-    try {
-        await db.collection('inventory').doc(name).set({ qty, limit });
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemQty').value = '';
-        document.getElementById('itemLimit').value = '';
-    } catch (err) {
-        console.error('Write Error:', err);
-    }
-  }
-
-  // Real-time Inventory Sync
-  db.collection('inventory').onSnapshot(snap => {
-    const container = document.getElementById('inventoryContainer');
-    container.innerHTML = '';
-    let lowStockCount = 0;
-
-    snap.forEach(doc => {
-      const d = doc.data();
-      const isLow = d.qty <= d.limit;
-      if(isLow) lowStockCount++;
-
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'inventory-item';
-      itemDiv.innerHTML = `
-        <span style="${isLow ? 'color:#ffb703; font-weight:bold;' : ''}">${doc.id}</span>
-        <span>${d.qty} Units</span>
-      `;
-      container.appendChild(itemDiv);
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('auth-barrier').classList.add('hide');
+            document.getElementById('main-ui').classList.remove('hide');
+            document.getElementById('user-name').innerText = user.email.split('@')[0].toUpperCase();
+            startDataSync(user.uid);
+            gsap.from('.glass', { opacity: 0, y: 50, stagger: 0.1, duration: 1, ease: "power4.out" });
+        } else {
+            document.getElementById('auth-barrier').classList.remove('hide');
+        }
     });
 
-    document.getElementById('invWarn').innerText = 
-      lowStockCount > 0 ? `⚠️ ${lowStockCount} Items are below stock limit!` : '';
-  });
+    // --- LOGIC ---
+    function switchTab(id) {
+        document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hide'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('view-' + id).classList.remove('hide');
+        event.target.classList.add('active');
+    }
 
-  // --- POS Logic ---
-  function mockSale() {
-    alert('POS Sale Logged. Inventory levels updated in global node.');
-  }
+    function startDataSync(uid) {
+        db.collection('inventory').where('uid', '==', uid).onSnapshot(snap => {
+            const list = document.getElementById('inventory-list');
+            const posGrid = document.getElementById('pos-grid');
+            let totalVal = 0; let lowStock = 0;
+            list.innerHTML = ""; posGrid.innerHTML = "";
 
-  // --- Finance Logic ---
-  function generatePnL() {
-    document.getElementById('financeOutput').innerHTML = `
-        <strong>P&L STATEMENT</strong><br>
-        Revenue: $12,500<br>
-        COGS: $7,200<br>
-        <hr>
-        Gross Profit: $5,300
-    `;
-  }
-  
-  function generateBS() {
-    document.getElementById('financeOutput').innerHTML = `
-        <strong>BALANCE SHEET</strong><br>
-        Assets: $85,000<br>
-        Liabilities: $22,000<br>
-        Equity: $63,000
-    `;
-  }
+            snap.forEach(doc => {
+                const d = doc.data();
+                const id = doc.id;
+                totalVal += (d.price * d.qty);
+                if(d.qty <= d.limit) lowStock++;
 
-  // --- Invoice Logic ---
-  function generateInvoice() {
-    alert('Generating Digital Tax Invoice PDF...');
-  }
+                list.innerHTML += `
+                    <div class="inventory-list-item glass">
+                        <div>
+                            <p class="font-bold text-blue-400 uppercase text-sm">${d.name}</p>
+                            <p class="text-[9px] opacity-50 tracking-widest uppercase">${d.qty <= d.limit ? '⚠️ Warning: Critical stock' : 'Optimal level'}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xl font-bold ${d.qty <= d.limit ? 'text-red-500' : 'text-white'}">${d.qty}</p>
+                            <p class="text-[10px] opacity-40">$${d.price} ea</p>
+                        </div>
+                        <button onclick="deleteItem('${id}')" class="text-red-400 p-2"><i class="fas fa-trash"></i></button>
+                    </div>`;
 
-  // GSAP Entrance
-  gsap.from('.card', { opacity: 0, y: 50, stagger: 0.15, duration: 1, ease: "power4.out" });
+                posGrid.innerHTML += `
+                    <button onclick="addToCart('${id}', '${d.name}', ${d.price})" class="glass p-6 text-left hover:border-blue-500 transition-all group">
+                        <p class="text-[10px] opacity-40 uppercase mb-2">Node SKU</p>
+                        <h4 class="font-bold text-white mb-6 uppercase text-sm">${d.name}</h4>
+                        <div class="flex justify-between items-end border-t border-white/5 pt-4">
+                            <span class="font-bold text-blue-500">$${d.price}</span>
+                            <span class="text-[9px] font-bold text-slate-500">${d.qty} left</span>
+                        </div>
+                    </button>`;
+            });
+
+            document.getElementById('total-val').innerText = "$" + totalVal.toLocaleString();
+            document.getElementById('low-count').innerText = lowStock;
+            if(lowStock > 0) document.getElementById('inv-warn').innerText = `⚠️ ${lowStock} NODES REQUIRE IMMEDIATE STOCK REPLENISHMENT`;
+            else document.getElementById('inv-warn').innerText = "";
+        });
+    }
+
+    async function addItem() {
+        const item = {
+            uid: auth.currentUser.uid,
+            name: document.getElementById('in-name').value,
+            qty: parseInt(document.getElementById('in-qty').value),
+            limit: parseInt(document.getElementById('in-limit').value),
+            price: parseFloat(document.getElementById('in-price').value),
+            email: document.getElementById('in-email').value
+        };
+        if(!item.name) return;
+        await db.collection('inventory').add(item);
+        ['in-name','in-qty','in-limit','in-price'].forEach(id => document.getElementById(id).value = "");
+    }
+
+    function addToCart(id, name, price) {
+        cart.push({id, name, price});
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        const cartEl = document.getElementById('cart');
+        let total = 0; cartEl.innerHTML = "";
+        cart.forEach((i, idx) => {
+            total += i.price;
+            cartEl.innerHTML += `
+                <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl text-xs">
+                    <span class="font-bold opacity-60">${i.name}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="text-blue-400 font-bold">$${i.price}</span>
+                        <button onclick="cart.splice(${idx},1); updateCartUI();" class="text-red-500"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('cart-total').innerText = "$" + total.toFixed(2);
+    }
+
+    async function processSale() {
+        if(cart.length === 0) return alert("CART EMPTY");
+        for(let item of cart) {
+            const ref = db.collection('inventory').doc(item.id);
+            const d = await ref.get();
+            await ref.update({ qty: Math.max(0, d.data().qty - 1) });
+        }
+        alert("IPG SECURE: Transaction Successful. Node data synchronized.");
+        cart = []; updateCartUI();
+    }
+
+    async function deleteItem(id) { if(confirm("Permanently remove this node?")) await db.collection('inventory').doc(id).delete(); }
 </script>
 
 </body>
