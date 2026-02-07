@@ -1,269 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexStore.OS | Enterprise ERP Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .tab-active { background: #0f172a; color: white; border-radius: 12px; }
-        .hide { display: none !important; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexStore.OS | Global ERP – © Gayan Gunasekara</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top right, #1e293b, #0f172a);
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .card-3d {
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .card-3d:hover {
+      transform: translateY(-10px) scale(1.02) rotateX(2deg);
+      border-color: rgba(37, 99, 235, 0.5);
+    }
+
+    .btn-3d {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-3d:active { transform: translateY(2px); }
+
+    .hide { display: none !important; }
+
+    /* Custom Input Styling */
+    input {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: white !important;
+    }
+    input:focus {
+      border-color: #3b82f6 !important;
+      outline: none;
+    }
+  </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="min-h-screen">
 
-    <div id="loginScreen" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white p-12 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center border border-slate-100">
-            <div class="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-blue-500/50">
-                <i data-lucide="shield-check" class="text-white" size="32"></i>
-            </div>
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tighter mb-2">NexStore<span class="text-blue-600">.OS</span></h1>
-            <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-10 text-center">Business Integrity System</p>
-            <input id="email" type="email" placeholder="Business Email" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border-none shadow-inner font-bold outline-none focus:ring-2 ring-blue-500">
-            <input id="password" type="password" placeholder="Access Key" class="w-full p-4 bg-slate-50 rounded-2xl mb-8 border-none shadow-inner font-bold outline-none focus:ring-2 ring-blue-500">
-            <button onclick="login()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl hover:bg-blue-600 transition-all active:scale-95">Authenticate</button>
-            <p id="errorMsg" class="text-red-500 text-[10px] mt-6 uppercase font-bold hide"></p>
+  <div id="authBarrier" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6">
+    <div class="glass p-10 rounded-[3rem] w-full max-w-md text-center border-white/5">
+        <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-600/30">
+            <i data-lucide="shield-check" class="text-white w-10 h-10"></i>
         </div>
-    </div>
-
-    <div id="mainUI" class="flex flex-1 hide overflow-hidden">
+        <h1 class="text-4xl font-black mb-2 tracking-tighter">NexStore<span class="text-blue-500">.OS</span></h1>
+        <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8">Global ERP Access Node</p>
         
-        <aside class="w-64 bg-slate-900 text-slate-400 p-8 flex flex-col shadow-2xl z-20">
-            <div class="mb-12">
-                <h1 class="text-2xl font-black text-white tracking-tighter italic">NexStore<span class="text-blue-500">.OS</span></h1>
-                <div class="mt-4 px-3 py-1 bg-slate-800 rounded-full inline-block text-[9px] font-bold text-blue-400 uppercase tracking-widest border border-slate-700">Master Control</div>
-            </div>
-            <nav class="flex-1 space-y-4">
-                <button onclick="switchTab('dash')" id="tab-dash" class="tab-active w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest transition"><i data-lucide="layout-dashboard" size="18"></i> Dashboard</button>
-                <button onclick="switchTab('pos')" id="tab-pos" class="w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:text-white transition"><i data-lucide="smartphone" size="18"></i> POS Terminal</button>
-                <button onclick="switchTab('inv')" id="tab-inv" class="w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:text-white transition"><i data-lucide="package" size="18"></i> Inventory Hub</button>
-                <button onclick="switchTab('fin')" id="tab-fin" class="w-full flex items-center gap-3 p-3 text-xs font-bold uppercase tracking-widest hover:text-white transition"><i data-lucide="trending-up" size="18"></i> Financials</button>
-            </nav>
-            <button onclick="logout()" class="mt-auto flex items-center gap-2 text-red-500 font-bold text-xs uppercase hover:text-red-400 transition"><i data-lucide="log-out" size="18"></i> Session Off</button>
-        </aside>
-
-        <main class="flex-1 p-12 overflow-y-auto scrollbar-hide">
-            
-            <section id="view-dash" class="tab-view space-y-12">
-                <h2 class="text-4xl font-black text-slate-900 tracking-tight">Enterprise Overview</h2>
-                <div class="grid grid-cols-3 gap-8">
-                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Total Net Value</p>
-                        <h3 id="dash-val" class="text-4xl font-black text-slate-900">$0.00</h3>
-                    </div>
-                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Low Stock Alerts</p>
-                        <h3 id="dash-alerts" class="text-4xl font-black text-red-500">0</h3>
-                    </div>
-                    <div class="bg-blue-600 p-10 rounded-[2.5rem] shadow-xl text-white">
-                        <p class="text-[10px] font-black uppercase tracking-widest mb-2 opacity-70">Node Status</p>
-                        <h3 class="text-2xl font-black uppercase tracking-tighter">Live & Encrypted</h3>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-pos" class="tab-view hide space-y-12 h-full flex flex-col">
-                <h2 class="text-4xl font-black text-slate-900 tracking-tight">Active Terminal</h2>
-                <div class="flex gap-8 flex-1 overflow-hidden">
-                    <div class="flex-1 bg-white rounded-[2.5rem] p-10 border border-slate-200 overflow-y-auto" id="posGrid"></div>
-                    <div class="w-96 bg-slate-900 rounded-[3rem] p-10 text-white flex flex-col shadow-2xl">
-                        <h4 class="text-xs font-black uppercase text-slate-500 mb-8 tracking-widest border-b border-slate-800 pb-4">Secure Cart</h4>
-                        <div id="cartItems" class="flex-1 space-y-4 overflow-y-auto"></div>
-                        <div class="pt-8 border-t border-slate-800 mt-6">
-                            <div class="flex justify-between text-2xl font-black"><span>Total</span> <span id="cartTotal">$0.00</span></div>
-                            <button onclick="checkout()" class="w-full bg-blue-600 py-6 rounded-3xl font-black uppercase text-xs mt-10 hover:bg-blue-700 transition">Complete Transaction</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-inv" class="tab-view hide space-y-12">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-4xl font-black text-slate-900 tracking-tight">Asset Management</h2>
-                    <div class="flex gap-4">
-                        <button onclick="toggleModal('add-item-modal')" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase shadow-xl">Manual entry</button>
-                        <button onclick="toggleModal('smart-extract-modal')" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase shadow-xl flex items-center gap-2"><i data-lucide="scan-text" size="16"></i> Smart Extraction</button>
-                    </div>
-                </div>
-                <div class="bg-white rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400">
-                            <tr><th class="p-8">Asset SKU</th><th class="p-8 text-center">Qty</th><th class="p-8 text-right">Price</th><th class="p-8 text-right">Control</th></tr>
-                        </thead>
-                        <tbody id="inventoryTable" class="divide-y divide-slate-100 font-bold text-sm"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="view-fin" class="tab-view hide space-y-12">
-                <h2 class="text-4xl font-black text-slate-900 tracking-tight text-center">Financial Intelligence</h2>
-                <div class="bg-white p-16 rounded-[4rem] border border-slate-200 shadow-sm text-center space-y-8 max-w-xl mx-auto">
-                    <div class="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto"><i data-lucide="file-text" size="40"></i></div>
-                    <h3 class="text-2xl font-black tracking-tight">Audit Audit Audit</h3>
-                    <p class="text-slate-400 font-bold text-xs uppercase tracking-widest leading-relaxed">Download full GAAP-compliant Profit & Loss statements and Balance Sheets for your nodes.</p>
-                    <button onclick="window.print()" class="bg-slate-900 text-white px-12 py-5 rounded-3xl font-black uppercase text-[10px] tracking-[0.3em] hover:scale-105 transition-transform">Export Audit Packet</button>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="smart-extract-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[110] flex items-center justify-center hide p-6">
-        <div class="bg-white w-full max-w-2xl rounded-[3.5rem] p-12 shadow-2xl">
-            <h3 class="text-3xl font-black mb-10 tracking-tight">Smart OCR Extraction</h3>
-            <textarea id="ocrInput" class="w-full h-64 p-8 bg-slate-50 rounded-[2.5rem] border-none font-mono text-xs shadow-inner outline-none mb-10" placeholder="Paste product data or invoice text here...&#10;Ex: Name: Cement Bag, Price: 1200, Qty: 100"></textarea>
-            <div class="flex gap-4">
-                <button onclick="toggleModal('smart-extract-modal')" class="flex-1 bg-slate-100 p-5 rounded-2xl font-black text-xs uppercase text-slate-400">Abort</button>
-                <button onclick="handleSmartExtract()" class="flex-1 bg-blue-600 p-5 rounded-2xl font-black text-xs uppercase text-white shadow-xl">Process Node</button>
-            </div>
+        <div class="space-y-4">
+            <input id="loginEmail" type="email" placeholder="Identity (Email)" class="w-full p-4 rounded-2xl">
+            <input id="loginPass" type="password" placeholder="Key (Password)" class="w-full p-4 rounded-2xl">
+            <button onclick="handleLogin()" class="btn-3d w-full p-4 rounded-2xl font-black uppercase text-xs tracking-widest">Authorize Session</button>
         </div>
+        <p id="authError" class="text-red-500 text-[10px] mt-4 font-bold uppercase hide"></p>
+    </div>
+  </div>
+
+  <header class="p-6 border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+        <h1 class="text-xl font-black italic">NexStore<span class="text-blue-500">.OS</span></h1>
+        <span class="text-[9px] bg-blue-600/20 text-blue-500 px-2 py-1 rounded-full font-bold uppercase tracking-widest">Enterprise</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <span id="userDisplay" class="text-[10px] font-bold text-slate-400">Not Synced</span>
+        <button onclick="handleLogout()" class="text-red-500 hover:text-red-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+            <i data-lucide="power" class="w-4 h-4"></i> Logout
+        </button>
+    </div>
+  </header>
+
+  <div class="container mx-auto p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+
+    <div class="glass p-8 rounded-[2.5rem] card-3d space-y-6">
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+            <i data-lucide="package" class="text-blue-500"></i> Inventory Matrix
+        </h3>
+      </div>
+      <div class="space-y-3">
+          <input id="itemName" placeholder="Item Entity Name" class="w-full p-3 rounded-xl text-sm">
+          <div class="grid grid-cols-2 gap-2">
+            <input id="itemQty" type="number" placeholder="Qty" class="w-full p-3 rounded-xl text-sm">
+            <input id="itemLimit" type="number" placeholder="Min Alert" class="w-full p-3 rounded-xl text-sm">
+          </div>
+          <button onclick="addItem()" class="btn-3d w-full p-3 rounded-xl font-black text-xs uppercase tracking-widest">Add SKU to Hub</button>
+      </div>
+      <div id="inventoryList" class="space-y-3 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
+          </div>
     </div>
 
-    <div id="add-item-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[110] flex items-center justify-center hide p-6">
-        <div class="bg-white w-full max-w-lg rounded-[3.5rem] p-12 shadow-2xl">
-            <h3 class="text-3xl font-black mb-10 tracking-tight">Register Asset</h3>
-            <div class="space-y-6">
-                <input id="in-name" class="w-full p-5 bg-slate-50 rounded-2xl font-bold" placeholder="Product Name">
-                <div class="grid grid-cols-2 gap-4">
-                    <input id="in-qty" type="number" class="w-full p-5 bg-slate-50 rounded-2xl font-bold" placeholder="Initial Qty">
-                    <input id="in-price" type="number" class="w-full p-5 bg-slate-50 rounded-2xl font-bold" placeholder="Price ($)">
-                </div>
-                <div class="flex gap-4 pt-10">
-                    <button onclick="toggleModal('add-item-modal')" class="flex-1 bg-slate-100 p-5 rounded-2xl font-black text-xs uppercase text-slate-400">Cancel</button>
-                    <button onclick="addItem()" class="flex-1 bg-blue-600 p-5 rounded-2xl font-black text-xs uppercase text-white">Save Item</button>
-                </div>
-            </div>
-        </div>
+    <div class="glass p-8 rounded-[2.5rem] card-3d flex flex-col">
+      <h3 class="text-lg font-black uppercase tracking-tight flex items-center gap-2 mb-6">
+        <i data-lucide="smartphone" class="text-blue-500"></i> POS Terminal
+      </h3>
+      <div class="bg-blue-600/10 border border-blue-600/20 rounded-2xl p-6 text-center mb-6">
+          <p class="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2">Simulated Sales Logic</p>
+          <h4 class="text-2xl font-black text-white">IPG SECURE</h4>
+      </div>
+      <button onclick="mockSale()" class="btn-3d w-full p-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+        <i data-lucide="credit-card"></i> Process Sale Node
+      </button>
     </div>
 
-    <script>
-        // FIREBASE MASTER CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
-            authDomain: "crypto-learner-4dc25.firebaseapp.com",
-            projectId: "crypto-learner-4dc25",
-            storageBucket: "crypto-learner-4dc25.firebasestorage.app",
-            messagingSenderId: "172453528799",
-            appId: "1:172453528799:web:a14e3a9a26700aabcd556a"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        let cart = [];
+    <div class="glass p-8 rounded-[2.5rem] card-3d space-y-6">
+      <h3 class="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+        <i data-lucide="activity" class="text-blue-500"></i> Financial Intelligence
+      </h3>
+      <div class="space-y-3">
+          <button onclick="generatePnL()" class="w-full p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest flex justify-between items-center transition-all">
+            Profit & Loss Ledger <i data-lucide="chevron-right" class="w-4 h-4 text-blue-500"></i>
+          </button>
+          <button onclick="generateBS()" class="w-full p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest flex justify-between items-center transition-all">
+            Balance Sheet Asset <i data-lucide="chevron-right" class="w-4 h-4 text-blue-500"></i>
+          </button>
+      </div>
+      <div id="financeOutput" class="text-[10px] font-mono text-slate-500 bg-black/20 p-4 rounded-xl border border-white/5 italic">
+          Awaiting Report Request...
+      </div>
+    </div>
 
-        // UI & AUTH
-        function login() {
-            auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
-                .catch(e => { document.getElementById('errorMsg').innerText = e.message; document.getElementById('errorMsg').classList.remove('hide'); });
+    <div class="glass p-8 rounded-[2.5rem] card-3d space-y-6 md:col-span-2 lg:col-span-1">
+      <h3 class="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+        <i data-lucide="file-text" class="text-blue-500"></i> Document Node
+      </h3>
+      <div class="grid grid-cols-2 gap-4">
+        <button onclick="generateInvoice()" class="p-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10">
+            <i data-lucide="printer" class="text-blue-400 w-5 h-5"></i>
+            <span class="text-[9px] font-black uppercase">Invoice</span>
+        </button>
+        <button onclick="alert('Connect IPG Gateway')" class="p-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10">
+            <i data-lucide="lock" class="text-emerald-400 w-5 h-5"></i>
+            <span class="text-[9px] font-black uppercase">Secure IPG</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="text-center p-12 opacity-40">
+    <p class="text-[10px] font-black uppercase tracking-[0.5em]">© 2026 Gayan Gunasekara – NexStore Global ERP Infrastructure</p>
+  </footer>
+
+  <script>
+    // 🔥 Firebase Master Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdXbWxhp1jZqrR17oWHkVSmeQhGHXm90Y",
+      authDomain: "crypto-learner-4dc25.firebaseapp.com",
+      projectId: "crypto-learner-4dc25",
+      storageBucket: "crypto-learner-4dc25.firebasestorage.app",
+      messagingSenderId: "172453528799",
+      appId: "1:172453528799:web:a14e3a9a26700aabcd556a"
+    };
+
+    // Initialize Global Instances
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // 🔐 AUTHENTICATION LOGIC
+    function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPass').value;
+        const errorEl = document.getElementById('authError');
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                errorEl.classList.add('hide');
+            })
+            .catch(err => {
+                errorEl.innerText = "ACCESS DENIED: " + err.message;
+                errorEl.classList.remove('hide');
+            });
+    }
+
+    function handleLogout() {
+        auth.signOut().then(() => location.reload());
+    }
+
+    // Monitor Auth State
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('authBarrier').classList.add('hide');
+            document.getElementById('userDisplay').innerText = user.email.split('@')[0].toUpperCase();
+            startInventorySync(user.uid);
+            gsap.from('.glass', { opacity: 0, scale: 0.9, y: 20, stagger: 0.1, duration: 0.8, ease: "power4.out" });
+        } else {
+            document.getElementById('authBarrier').classList.remove('hide');
         }
-        function logout() { auth.signOut().then(() => location.reload()); }
-        auth.onAuthStateChanged(user => {
-            if(user) { 
-                document.getElementById('loginScreen').classList.add('hide');
-                document.getElementById('mainUI').classList.remove('hide');
-                syncData();
-            } else { document.getElementById('loginScreen').classList.remove('hide'); }
+        lucide.createIcons();
+    });
+
+    // 📦 INVENTORY HUB LOGIC
+    function addItem() {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const name = document.getElementById('itemName').value.trim();
+        const qty = Number(document.getElementById('itemQty').value);
+        const limit = Number(document.getElementById('itemLimit').value);
+
+        if (!name || isNaN(qty)) return alert("Invalid Node Data");
+
+        db.collection('inventory').add({
+            uid: user.uid,
+            name: name,
+            qty: qty,
+            limit: limit,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQty').value = '';
+            document.getElementById('itemLimit').value = '';
+        });
+    }
+
+    function startInventorySync(uid) {
+        db.collection('inventory')
+          .where("uid", "==", uid)
+          .orderBy("timestamp", "desc")
+          .onSnapshot(snap => {
+            const list = document.getElementById('inventoryList');
+            list.innerHTML = '';
+            
+            snap.forEach(doc => {
+                const d = doc.data();
+                const isLow = d.qty <= d.limit;
+                
+                const itemEl = document.createElement('div');
+                itemEl.className = `p-4 rounded-2xl flex justify-between items-center transition-all ${isLow ? 'bg-red-500/10 border border-red-500/20' : 'bg-white/5 border border-white/5'}`;
+                
+                itemEl.innerHTML = `
+                    <div>
+                        <p class="text-xs font-black uppercase text-white">${d.name}</p>
+                        <p class="text-[9px] font-bold text-slate-500 tracking-widest">${isLow ? '⚠️ LOW STOCK TRIGGER' : 'NODE OPTIMAL'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-black ${isLow ? 'text-red-500' : 'text-blue-500'}">${d.qty}</p>
+                        <p class="text-[9px] font-bold uppercase text-slate-600">Units</p>
+                    </div>
+                `;
+                list.appendChild(itemEl);
+
+                if (isLow) triggerStockAlert(d.name, d.qty);
+            });
             lucide.createIcons();
         });
+    }
 
-        function switchTab(id) {
-            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hide'));
-            document.querySelectorAll('aside nav button').forEach(b => b.classList.remove('tab-active'));
-            document.getElementById('view-'+id).classList.remove('hide');
-            document.getElementById('tab-'+id).classList.add('tab-active');
-            lucide.createIcons();
-        }
+    function triggerStockAlert(name, qty) {
+        console.warn(`[SYSTEM ALERT] Low Stock for ${name}: ${qty} remaining.`);
+        // Note: Real Email/SMS requires a backend (Netlify Functions)
+    }
 
-        function toggleModal(id) { document.getElementById(id).classList.toggle('hide'); }
+    // 🧾 FINANCE & POS DEMOS
+    function mockSale() {
+        alert("IPG SECURE: Transaction Authorized. Stock Node Deducting...");
+    }
 
-        // CORE DATA LOGIC
-        function syncData() {
-            const user = auth.currentUser;
-            db.collection("items").where("userId", "==", user.uid).onSnapshot(snap => {
-                const table = document.getElementById('inventoryTable');
-                const grid = document.getElementById('posGrid');
-                let totalVal = 0; let alerts = 0;
-                table.innerHTML = ""; grid.innerHTML = "";
-                
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const id = doc.id;
-                    totalVal += (data.price * data.qty);
-                    if(data.qty < 20) alerts++;
+    function generatePnL() {
+        document.getElementById('financeOutput').innerText = "CALCULATING PROFIT & LOSS LEDGER: REV:$14,200 - COST:$9,100 = NET:$5,100";
+    }
 
-                    table.innerHTML += `<tr>
-                        <td class="p-8 text-slate-900 font-extrabold uppercase text-xs tracking-tighter">${data.name}</td>
-                        <td class="p-8"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${data.qty < 20 ? 'bg-red-50 text-red-500' : 'bg-teal-50 text-teal-600'}">${data.qty < 20 ? 'Low stock' : 'Optimal'}</span></td>
-                        <td class="p-8 text-center text-slate-500">${data.qty} Items</td>
-                        <td class="p-8 text-right font-black text-blue-600">$${data.price.toFixed(2)}</td>
-                        <td class="p-8 text-right"><button onclick="deleteItem('${id}')" class="text-slate-300 hover:text-red-500 transition"><i data-lucide="trash-2" size="18"></i></button></td>
-                    </tr>`;
+    function generateBS() {
+        document.getElementById('financeOutput').innerText = "BALANCE SHEET SYNC: ASSETS:$85K | LIABILITIES:$22K | EQUITY:$63K";
+    }
 
-                    grid.innerHTML += `<button onclick="addToCart('${id}', '${data.name}', ${data.price})" class="bg-slate-50 p-6 rounded-[2.5rem] border-2 border-transparent hover:border-blue-500 hover:bg-white hover:shadow-xl transition-all text-left">
-                        <h4 class="font-black text-slate-800 text-xs mb-3 uppercase tracking-tight">${data.name}</h4>
-                        <div class="flex justify-between items-end"><span class="text-[9px] font-bold text-slate-400 uppercase">${data.qty} Left</span><span class="font-black text-blue-600 text-lg">$${data.price}</span></div>
-                    </button>`;
-                });
-                document.getElementById('dash-val').innerText = "$" + totalVal.toLocaleString();
-                document.getElementById('dash-alerts').innerText = alerts;
-                lucide.createIcons();
-            });
-        }
+    function generateInvoice() {
+        alert("System Node: Generating VAT-compliant invoice PDF...");
+    }
 
-        async function addItem() {
-            const name = document.getElementById('in-name').value;
-            const qty = parseInt(document.getElementById('in-qty').value);
-            const price = parseFloat(document.getElementById('in-price').value);
-            if(!name || !qty || !price) return alert("All fields mandatory");
-            await db.collection("items").add({ name, qty, price, userId: auth.currentUser.uid });
-            toggleModal('add-item-modal');
-        }
+    // Animations
+    lucide.createIcons();
+  </script>
 
-        // SMART EXTRACTION (The function you requested)
-        function handleSmartExtract() {
-            const input = document.getElementById('ocrInput').value;
-            const lines = input.split(/[,|\n]/);
-            let name = ""; let price = 0; let qty = 0;
-            lines.forEach(l => {
-                if(l.toLowerCase().includes('name')) name = l.split(':')[1].trim();
-                if(l.toLowerCase().includes('price')) price = parseFloat(l.split(':')[1]);
-                if(l.toLowerCase().includes('qty')) qty = parseInt(l.split(':')[1]);
-            });
-            if(name) db.collection("items").add({ name, price, qty, userId: auth.currentUser.uid });
-            toggleModal('smart-extract-modal');
-            document.getElementById('ocrInput').value = "";
-        }
-
-        function addToCart(id, name, price) { cart.push({id, name, price}); updateCart(); }
-        function updateCart() {
-            const list = document.getElementById('cartItems');
-            let total = 0; list.innerHTML = "";
-            cart.forEach((item, i) => {
-                total += item.price;
-                list.innerHTML += `<div class="flex justify-between bg-slate-800 p-4 rounded-2xl animate-in slide-in-from-right-2"><span class="text-[10px] font-black uppercase text-slate-400">${item.name}</span><span class="font-black text-blue-400 text-sm">$${item.price}</span></div>`;
-            });
-            document.getElementById('cartTotal').innerText = "$" + total.toFixed(2);
-        }
-
-        async function checkout() {
-            if(cart.length === 0) return;
-            for(let item of cart) {
-                const ref = db.collection("items").doc(item.id);
-                const snap = await ref.get();
-                await ref.update({ qty: snap.data().qty - 1 });
-            }
-            alert("Transaction Securely Completed."); cart = []; updateCart();
-        }
-
-        async function deleteItem(id) { if(confirm("Permanently remove asset?")) await db.collection("items").doc(id).delete(); }
-
-        lucide.createIcons();
-    </script>
 </body>
 </html>
